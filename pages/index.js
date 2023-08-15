@@ -16,28 +16,31 @@ const DATA = [
   },
 ];
 
-const dnd = () => {
+const DndExample = () => {
   const [stores, setStores] = useState(DATA);
   const [isBrowser, setIsBrowser] = useState(false);
-  const [selectedStore, setSelectedStore] = useState(null);
-  /*
-  ** 
-  hatasının çözümü içi
-     react-beautiful-dndA setup problem was encountered.> Invariant failed: Draggable[id: 25daffdc-aae0-4d73-bd31-43f73101e7c0]: Unable to find drag handle
-***
-   */
+  const [selectedStore, setSelectedStore] = useState([]);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       setIsBrowser(true);
     }
   }, []);
-  useEffect(() => {
-    console.log(selectedStore);
-  }, [selectedStore]);
 
+  const moveItem = (
+    sourceList,
+    destinationList,
+    sourceIndex,
+    destinationIndex
+  ) => {
+    const sourceClone = Array.from(sourceList);
+    const destClone = Array.from(destinationList);
+    const [movedItem] = sourceClone.splice(sourceIndex, 1);
+    destClone.splice(destinationIndex, 0, movedItem);
+
+    return [sourceClone, destClone];
+  };
   const onDragEnd = async (results) => {
-    /* destination -> hedef index  */
-    /* source->  taşınan item ilk index */
     const { source, destination, type } = results;
 
     if (!destination) return;
@@ -45,53 +48,56 @@ const dnd = () => {
     if (
       source.droppableId === destination.droppableId &&
       source.index === destination.index
-    )
+    ) {
       return;
-    const selectStore = stores[source.index].id;
-    setSelectedStore(selectStore);
-
-    if (type === "ITEM") {
-      const reorderedStores = [...stores];
-
-      const storeSourceIndex = source.index;
-      const storeDestinatonIndex = destination.index;
-
-      const [removedStore] = reorderedStores.splice(storeSourceIndex, 1);
-      reorderedStores.splice(storeDestinatonIndex, 0, removedStore);
-
-      return setStores(reorderedStores);
     }
 
-    const newStores = [...stores];
-
-    setStores(newStores);
-  };
-
-  const yy = () => {
-    console.log("asdasd");
-    if (selectedStore !== null) {
-      // Mağazayı hedefe taşıma işlemini burada yapabilirsiniz
-      const newStores = [...stores];
-
-      const targetIndex = newStores.findIndex(
-        (store) => store.id === selectedStore
-      );
-
-      // Yapılacak taşıma işlemini burada gerçekleştirin
-
-      setSelectedStore(null); // Seçilen mağazayı sıfırla
+    if (type === "ITEM") {
+      if (
+        source.droppableId === "droppable" &&
+        destination.droppableId === "selectedStore"
+      ) {
+        const [updatedStores, updatedSelectedStore] = moveItem(
+          stores,
+          selectedStore,
+          source.index,
+          destination.index
+        );
+        setStores(updatedStores);
+        setSelectedStore(updatedSelectedStore);
+      } else if (
+        source.droppableId === "selectedStore" &&
+        destination.droppableId === "selectedStore"
+      ) {
+        const updatedSelectedStore = Array.from(selectedStore);
+        const [movedItem] = updatedSelectedStore.splice(source.index, 1);
+        updatedSelectedStore.splice(destination.index, 0, movedItem);
+        setSelectedStore(updatedSelectedStore);
+      } else if (
+        source.droppableId === "selectedStore" &&
+        destination.droppableId === "droppable"
+      ) {
+        const [updatedSelectedStore, updatedStores] = moveItem(
+          selectedStore,
+          stores,
+          source.index,
+          destination.index
+        );
+        setSelectedStore(updatedSelectedStore);
+        setStores(updatedStores);
+      }
     }
   };
 
   return (
     <div>
       <DragDropContext onDragEnd={onDragEnd}>
-        <div>
+        <div className="bg-gray-500 text-white p-3 m-6">
           {isBrowser ? (
             <Droppable droppableId="droppable" type="ITEM">
               {(provided) => (
                 <div {...provided.droppableProps} ref={provided.innerRef}>
-                  {stores.map((item, index) => (
+                  {stores?.map((item, index) => (
                     <Draggable
                       key={item.id}
                       draggableId={item.id}
@@ -114,14 +120,37 @@ const dnd = () => {
             </Droppable>
           ) : null}
         </div>
-        <div
-          className="w-6/12 border border-dashed border-gray-300 h-44"
-          onDrop={yy}
-        >
-          {selectedStore !== null ? (
-            <div>Taşımak istediğiniz mağazayı buraya sürükleyip bırakın.</div>
-          ) : (
-            <div>Bir mağaza seçip buraya sürükleyin.</div>
+        <div>
+          {isBrowser && (
+            <div
+              className="target-div border border-solid m-6 bg-gray-200 border-gray-100 p-5"
+              id="test"
+            >
+              <Droppable droppableId="selectedStore" type="ITEM">
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef}>
+                    {selectedStore.map((item, index) => (
+                      <Draggable
+                        key={item.id}
+                        draggableId={item.id}
+                        index={index}
+                      >
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                          >
+                            {item.name}
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </div>
           )}
         </div>
       </DragDropContext>
@@ -129,4 +158,4 @@ const dnd = () => {
   );
 };
 
-export default dnd;
+export default DndExample;
