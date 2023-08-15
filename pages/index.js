@@ -90,21 +90,29 @@ const DndExample = () => {
   };
 
   return (
-    <div>
+    <div className="w-screen h-screen bg-[#0b0d10] flex justify-start items-start p-12 gap-8">
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="bg-gray-500 text-white p-3 m-6">
+        <div className="w-1/3 bg-[#181920] text-white p-4 rounded-lg">
           {isBrowser ? (
             <Droppable droppableId="droppable" type="ITEM">
               {(provided) => (
                 <div {...provided.droppableProps} ref={provided.innerRef}>
+                  <h1 className="p-3 ttext-sm bg-gray-100 bg-opacity-10 rounded-lg mb-4">
+                    TODO
+                  </h1>
                   {stores?.map((item, index) => (
                     <Draggable
                       key={item.id}
                       draggableId={item.id}
                       index={index}
                     >
-                      {(provided) => (
+                      {(provided, snapshot) => (
                         <div
+                          className={`p-5 bg-[#242831] rounded-lg mb-3 border border-solid border-transparent ${
+                            snapshot.isDragging
+                              ? "shadow-xl shadow-[#ffffff23] drop-shadow-md border-gray-100"
+                              : ""
+                          }`}
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
@@ -120,10 +128,10 @@ const DndExample = () => {
             </Droppable>
           ) : null}
         </div>
-        <div>
+        <div className="w-1/3">
           {isBrowser && (
             <div
-              className="target-div border border-solid m-6 bg-gray-200 border-gray-100 p-5"
+              className="target-div  bg-[#58585816] border border-dashed rounded-lg border-gray-600 p-4"
               id="test"
             >
               <Droppable droppableId="selectedStore" type="ITEM">
@@ -137,6 +145,7 @@ const DndExample = () => {
                       >
                         {(provided) => (
                           <div
+                            className="p-5 bg-[#272a32] text-white rounded-lg mb-3 border border-solid border-transparent "
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
